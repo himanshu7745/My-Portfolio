@@ -215,8 +215,6 @@ nav {
   flex-wrap: wrap;
 }
 
-.hero-sub::before { content: '//'; color: var(--accent); font-size: 0.85em; }
-
 .hero-bio {
   font-size: clamp(0.9rem, 1.8vw, 1.05rem);
   line-height: 1.8;
