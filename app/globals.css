@@ -418,61 +418,53 @@ img {
   0%, 100% { height: 3px; }
   50% { height: 11px; }
 }
-.music-card {
+.progress { height: 3px; border-radius: 3px; background: var(--border-strong); overflow: hidden; }
+.progress span { display: block; height: 100%; background: #1db954; transition: width 1s linear; }
+.pill-live { display: inline-flex; align-items: center; gap: 5px; border-color: rgba(29, 185, 84, 0.5); color: #1db954; }
+.pill-live .eq i { background: #1db954; }
+.spotify-embed {
+  display: block;
+  width: 100%;
+  height: 152px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--surface-2);
+  color-scheme: normal;
+}
+.sp-head { white-space: nowrap; letter-spacing: 0.1em; }
+.sp-head > span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.sp-ago { margin: -4px 0 8px; }
+.sp-now {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 12px 14px;
   padding: 14px;
   border-radius: 12px;
-  background:
-    radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--accent) 30%, transparent), transparent 60%),
-    linear-gradient(160deg, color-mix(in srgb, var(--accent) 14%, var(--surface-2)), var(--surface-2));
   border: 1px solid var(--border);
-}
-.music-top { display: flex; gap: 14px; }
-.album {
-  flex: none;
-  position: relative;
-  width: 78px;
-  height: 78px;
-  border-radius: 50%;
   background:
-    repeating-radial-gradient(circle, rgba(0, 0, 0, 0.55) 0 1px, rgba(20, 20, 20, 0.9) 1px 3px),
-    #111;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+    radial-gradient(120% 90% at 0% 0%, rgba(29, 185, 84, 0.22), transparent 60%),
+    var(--surface-2);
+  transition: border-color 0.15s ease;
 }
-.album span {
-  position: absolute;
-  inset: 26px;
-  border-radius: 50%;
-  background: conic-gradient(from 30deg, var(--accent), color-mix(in srgb, var(--accent) 40%, #fff), var(--accent));
-  box-shadow: inset 0 0 0 9px color-mix(in srgb, var(--accent) 75%, #000);
+.sp-now:hover { border-color: rgba(29, 185, 84, 0.5); }
+.sp-cover {
+  width: 72px;
+  height: 72px;
+  border-radius: 8px;
+  object-fit: cover;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
 }
-.album span::after {
-  content: "";
-  position: absolute;
-  inset: 11px;
-  border-radius: 50%;
-  background: #111;
-}
-.album.spin { animation: spin 3.2s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.tracklist { font-size: 13px; display: grid; gap: 3px; min-width: 0; }
-.tracklist li { color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.tracklist li .mono { color: var(--muted); margin-right: 8px; font-size: 11px; }
-.tracklist li.on { color: var(--accent); }
-.music-meta { display: flex; flex-direction: column; margin-top: 12px; }
-.progress { height: 3px; border-radius: 3px; background: var(--border-strong); margin: 10px 0 8px; overflow: hidden; }
-.progress span { display: block; height: 100%; background: var(--accent); transition: width 0.3s linear; }
-.music-controls { display: flex; align-items: center; justify-content: center; gap: 18px; }
-.music-controls button { display: grid; place-items: center; color: var(--text-2); }
-.music-controls button:hover { color: var(--text); }
-.music-controls .play {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: var(--accent-ink);
-}
-.music-controls .play:hover { color: var(--accent-ink); filter: brightness(1.08); }
-.spotify { width: 100%; border: 0; border-radius: 12px; }
+.sp-cover-empty { display: grid; place-items: center; background: var(--window); }
+.sp-meta { display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+.sp-title, .sp-sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sp-title { font-size: 15px; }
+.sp-sub { font-size: 13px; color: var(--text-2); }
+.sp-progress { grid-column: 1 / -1; }
+.sp-time { display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; color: var(--muted); }
+.sp-open { display: inline-flex; align-items: center; gap: 3px; }
+.sp-now:hover .sp-open { color: #1db954; }
+.sp-profile { display: inline-block; margin-top: 10px; }
+.sp-profile:hover { color: #1db954; }
 
 /* Status */
 .status-head { display: flex; align-items: center; gap: 8px; color: var(--text); padding-bottom: 10px; border-bottom: 1px solid var(--border); }
@@ -1252,7 +1244,7 @@ a.card.project:hover,
    Responsive
    ===================================================================== */
 @media (max-height: 860px) and (min-width: 1101px) {
-  #w-music,
+  #w-links,
   #w-visitors { display: none; }
 }
 @media (max-height: 740px) and (min-width: 1101px) {

@@ -7,7 +7,7 @@ import Robot from "./Robot";
 import Window from "./Window";
 import { DesktopProvider, isAppId, useDesktop } from "./DesktopContext";
 import {
-  CalendarWidget, ContribWidget, LinksWidget, MusicWidget, QuoteWidget, StatusWidget, ThemeWidget, VisitorsWidget,
+  CalendarWidget, ContribWidget, LinksWidget, QuoteWidget, SpotifyWidget, StatusWidget, ThemeWidget, VisitorsWidget,
 } from "./widgets/Widgets";
 
 /** Supports deep links like /#projects and keeps the hash in sync with the active app. */
@@ -39,7 +39,7 @@ export default function Desktop() {
           <aside className="col col-left">
             <QuoteWidget />
             <LinksWidget />
-            <MusicWidget />
+            <SpotifyWidget />
           </aside>
           <section className="center">
             <ContribWidget />

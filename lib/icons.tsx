@@ -112,3 +112,14 @@ export const IconLeetcode = (p: P) => (
 export const IconCodeforces = (p: P) => (
   <Svg {...p} strokeWidth={0} fill="currentColor"><rect x="3" y="10" width="5" height="11" rx="1.2" /><rect x="9.5" y="4" width="5" height="17" rx="1.2" /><rect x="16" y="8" width="5" height="13" rx="1.2" /></Svg>
 );
+/** Spotify mark (brand green disc with three arcs). */
+export const IconSpotify = ({ size = 18, ...rest }: P) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" {...rest}>
+    <circle cx="12" cy="12" r="11" fill="#1DB954" />
+    <g fill="none" stroke="#0d0d0d" strokeLinecap="round">
+      <path d="M6.6 9.2c3.7-1.1 7.9-.7 11 1.1" strokeWidth="1.9" />
+      <path d="M7.2 12.4c3-.8 6.3-.5 8.8 1" strokeWidth="1.6" />
+      <path d="M7.8 15.4c2.3-.6 4.7-.4 6.6.7" strokeWidth="1.4" />
+    </g>
+  </svg>
+);

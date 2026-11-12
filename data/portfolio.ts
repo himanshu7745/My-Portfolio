@@ -88,14 +88,18 @@ export const reading = [
 ];
 
 /**
- * Music widget. Put a Spotify embed URL in `spotifyEmbed`
- * (e.g. "https://open.spotify.com/embed/playlist/<id>") to show a real player.
+ * Spotify widget.
+ * - Live "now playing" works once SPOTIFY_CLIENT_ID / SPOTIFY_CLIENT_SECRET / SPOTIFY_REFRESH_TOKEN
+ *   are set (see README → Spotify). Until then, and whenever nothing is playing, the widget shows
+ *   the last played track or `fallback` below as Spotify's embedded player.
+ * - `fallback` accepts any open.spotify.com link to a playlist, album, track or artist.
+ *   Replace it with your own playlist.
  */
-export const music = {
-  spotifyEmbed: "",
-  title: "Deep Focus",
-  artist: "coding playlist",
-  tracks: ["Compile & Chill", "Segfault Serenade", "Off-by-One", "Merge Conflict"],
+export const spotify = {
+  profileUrl: "",
+  fallback: "https://open.spotify.com/playlist/37i9dQZF1DWWQRwui0ExPn",
+  /** Show the last played track when nothing is playing (needs live setup). */
+  showRecentlyPlayed: true,
 };
 
 export const projects: Project[] = [
