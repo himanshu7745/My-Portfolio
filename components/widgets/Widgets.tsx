@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { handles, music, quotes, reading, status } from "@/data/portfolio";
-import { IconArrowUpRight, IconPause, IconPlay, IconSkipBack, IconSkipFwd } from "@/lib/icons";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { handles, quotes, reading, spotify, status } from "@/data/portfolio";
+import { IconArrowUpRight, IconSpotify } from "@/lib/icons";
 import { THEMES } from "@/lib/themes";
-import type { GithubResponse } from "@/lib/types";
+import type { GithubResponse, SpotifyResponse } from "@/lib/types";
 import Heatmap from "../Heatmap";
 import { useDesktop } from "../DesktopContext";
 import Widget from "./Widget";
@@ -55,72 +55,140 @@ export function LinksWidget() {
   );
 }
 
-/* ------------------------------ Music ------------------------------ */
+/* ------------------------------ Spotify ------------------------------ */
 
-export function MusicWidget() {
-  const [playing, setPlaying] = useState(false);
-  const [track, setTrack] = useState(0);
-  const [progress, setProgress] = useState(0);
+/** open.spotify.com/{type}/{id} → embeddable player URL. */
+function embedUrl(link: string) {
+  const m = link.match(/open\.spotify\.com\/(?:intl-[a-z]+\/)?(?:embed\/)?(track|album|playlist|artist|episode|show)\/([A-Za-z0-9]+)/);
+  return m ? { url: `https://open.spotify.com/embed/${m[1]}/${m[2]}?utm_source=generator`, type: m[1] } : null;
+}
 
+const mmss = (ms: number) => {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+};
+
+function timeAgo(iso: string) {
+  const mins = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60_000));
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const h = Math.round(mins / 60);
+  return h < 24 ? `${h}h ago` : `${Math.round(h / 24)}d ago`;
+}
+
+function SpotifyEmbed({ link, title }: { link: string; title: string }) {
+  const embed = embedUrl(link);
+  if (!embed) return null;
+  return (
+    <iframe
+      className="spotify-embed"
+      src={embed.url}
+      height={152}
+      loading="lazy"
+      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+      title={title}
+    />
+  );
+}
+
+export function SpotifyWidget() {
+  const [data, setData] = useState<SpotifyResponse | null | undefined>(undefined);
+  const [fetchedAt, setFetchedAt] = useState(0);
+  const [now, setNow] = useState(0);
+  const refetching = useRef(false);
+
+  const load = useCallback(() => {
+    if (refetching.current) return;
+    refetching.current = true;
+    fetch("/api/spotify")
+      .then((r) => (r.ok ? (r.json() as Promise<SpotifyResponse>) : Promise.reject()))
+      .then((d) => {
+        setData(d);
+        setFetchedAt(Date.now());
+        setNow(Date.now());
+      })
+      .catch(() => setData(null))
+      .finally(() => {
+        refetching.current = false;
+      });
+  }, []);
+
+  // Poll while the tab is visible.
+  useEffect(() => {
+    load();
+    const id = setInterval(() => document.visibilityState === "visible" && load(), 30_000);
+    const onVis = () => document.visibilityState === "visible" && load();
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  }, [load]);
+
+  const playing = !!data?.isPlaying && !!data.track;
+
+  // Tick the progress bar locally between polls.
   useEffect(() => {
     if (!playing) return;
-    const id = setInterval(() => setProgress((p) => Math.min(100, p + 0.5)), 300);
+    const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
   }, [playing]);
 
-  useEffect(() => {
-    if (progress < 100) return;
-    setTrack((t) => (t + 1) % music.tracks.length);
-    setProgress(0);
-  }, [progress]);
+  const track = data?.track ?? null;
+  const progress = playing && track ? Math.min(track.durationMs, data!.progressMs + (now - fetchedAt)) : 0;
 
-  const skip = (d: number) => {
-    setTrack((t) => (t + d + music.tracks.length) % music.tracks.length);
-    setProgress(0);
-  };
+  // Fetch again as soon as the current song should have ended.
+  useEffect(() => {
+    if (playing && track && progress >= track.durationMs) load();
+  }, [playing, track, progress, load]);
 
   return (
-    <Widget id="w-music" label="Now playing">
-      <div className="widget-head mono row-between">
+    <Widget id="w-music" label="Spotify now playing">
+      <div className="widget-head mono row-between sp-head">
         <span className="row gap-s">
-          <span className={`eq${playing ? " on" : ""}`} aria-hidden="true"><i /><i /><i /></span> Now playing
+          <IconSpotify size={15} /> Spotify <span className="muted">·</span> {playing ? "Now playing" : data?.playedAt ? "Last played" : "Now playing"}
         </span>
-        <span className="pill-mini mono">{music.spotifyEmbed ? "SPOTIFY" : playing ? "PLAYING" : "IDLE"}</span>
+        <span className={`pill-mini mono${playing ? " pill-live" : ""}`}>
+          {playing ? (<><span className="eq on" aria-hidden="true"><i /><i /><i /></span> LIVE</>) : "IDLE"}
+        </span>
       </div>
-      {music.spotifyEmbed ? (
-        <iframe
-          className="spotify"
-          src={music.spotifyEmbed}
-          height="152"
-          loading="lazy"
-          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-          title="Spotify player"
-        />
+
+      {playing && track ? (
+        <a className="sp-now" href={track.url} target="_blank" rel="noreferrer">
+          {track.image ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img className="sp-cover" src={track.image} alt="" width={72} height={72} />
+          ) : (
+            <span className="sp-cover sp-cover-empty"><IconSpotify size={28} /></span>
+          )}
+          <div className="sp-meta">
+            <strong className="sp-title">{track.title}</strong>
+            <span className="sp-sub">{track.artists}</span>
+            <span className="sp-sub muted">{track.album}</span>
+          </div>
+          <div className="sp-progress">
+            <div className="progress"><span style={{ width: `${(progress / track.durationMs) * 100}%` }} /></div>
+            <div className="sp-time mono">
+              <span>{mmss(progress)}</span>
+              <span className="sp-open">Open in Spotify <IconArrowUpRight size={12} /></span>
+              <span>{mmss(track.durationMs)}</span>
+            </div>
+          </div>
+        </a>
       ) : (
-        <div className="music-card">
-          <div className="music-top">
-            <div className={`album${playing ? " spin" : ""}`} aria-hidden="true"><span /></div>
-            <ol className="tracklist">
-              {music.tracks.map((t, n) => (
-                <li key={t} className={n === track ? "on" : ""}>
-                  <span className="mono">{n + 1}</span> {t}
-                </li>
-              ))}
-            </ol>
-          </div>
-          <div className="music-meta">
-            <strong>{music.tracks[track]}</strong>
-            <span className="muted small">{music.title} · {music.artist}</span>
-          </div>
-          <div className="progress"><span style={{ width: `${progress}%` }} /></div>
-          <div className="music-controls">
-            <button aria-label="Previous track" onClick={() => skip(-1)}><IconSkipBack size={16} /></button>
-            <button className="play" aria-label={playing ? "Pause" : "Play"} onClick={() => setPlaying((p) => !p)}>
-              {playing ? <IconPause size={16} /> : <IconPlay size={16} />}
-            </button>
-            <button aria-label="Next track" onClick={() => skip(1)}><IconSkipFwd size={16} /></button>
-          </div>
-        </div>
+        <>
+          {track && data?.playedAt && <div className="sp-ago mono xsmall muted">{timeAgo(data.playedAt)}</div>}
+          <SpotifyEmbed
+            key={track?.url ?? spotify.fallback}
+            link={track?.url ?? spotify.fallback}
+            title={track ? `${track.title} on Spotify` : "Spotify playlist"}
+          />
+        </>
+      )}
+      {spotify.profileUrl && (
+        <a className="sp-profile mono xsmall muted" href={spotify.profileUrl} target="_blank" rel="noreferrer">
+          My Spotify profile ↗
+        </a>
       )}
     </Widget>
   );

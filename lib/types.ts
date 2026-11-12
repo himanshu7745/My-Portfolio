@@ -42,3 +42,24 @@ export type GithubResponse = {
   total: number;
   days: GithubDay[];
 } | null;
+
+export type SpotifyTrack = {
+  id: string;
+  type: "track" | "episode";
+  title: string;
+  artists: string;
+  album: string;
+  image: string | null;
+  url: string;
+  durationMs: number;
+};
+
+export type SpotifyResponse = {
+  /** False when the server has no Spotify credentials. */
+  configured: boolean;
+  isPlaying: boolean;
+  progressMs: number;
+  track: SpotifyTrack | null;
+  /** Set when `track` is the most recently played one rather than the current one. */
+  playedAt: string | null;
+};
